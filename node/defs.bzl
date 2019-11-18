@@ -134,7 +134,7 @@ def _npm_library_impl(ctx):
 
         # The created files are all under `node_modules/` because
         # that's where the npm installer puts them.
-        node_modules_srcs_dict[content] = ctx.new_file('node_modules/' + content)
+        node_modules_srcs_dict[content] = ctx.declare_file('node_modules/' + content)
 
     shrinkwrap = ctx.file.shrinkwrap
 
@@ -393,7 +393,7 @@ def _node_binary_impl(ctx):
     # node won't populate process.argv correctly.
 
     # Create the inner wrapper with the require call.
-    inner_wrapper = ctx.new_file(ctx.outputs.executable, ctx.outputs.executable.basename + '-wrapper.js')
+    inner_wrapper = ctx.declare_file(ctx.outputs.executable, ctx.outputs.executable.basename + '-wrapper.js')
     srcElements.append(inner_wrapper)
     ctx.file_action(
         inner_wrapper,
@@ -624,7 +624,7 @@ def _node_internal_module_impl(ctx):
     elif ctx.attr.main:
         # Create a package.json file that points to the 'main' js
         # file.
-        package_json_src = ctx.new_file('package.json')
+        package_json_src = ctx.declare_file('package.json')
         main = ctx.file.main
 
         main_relpath = _get_relpath(ctx, main)
