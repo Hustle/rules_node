@@ -270,10 +270,10 @@ def _collect_srcs_and_deps(ctx):
 
     Returns the tuple (srcs, all_node_modules).
     '''
-    srcs = depset()
+    srcElements = [];
     all_node_modules = _new_all_node_modules()
 
-    srcs += ctx.files.srcs
+    srcElements.append(ctx.files.srcs)
 
     # Verify that `srcs` are not node_library or npm_library rules.
     for src in ctx.attr.srcs:
@@ -282,13 +282,14 @@ def _collect_srcs_and_deps(ctx):
 
     for dep in ctx.attr.deps:
         if hasattr(dep, 'srcs'):
-            srcs += dep.srcs
+            srcElements.append(dep.srcs)
 
         if hasattr(dep, 'all_node_modules'):
             for key, value in dep.all_node_modules.items():
                 if key not in all_node_modules:
                     all_node_modules[key] = value
 
+    srcs = depset(transitive=srcElements)
     return (srcs, all_node_modules)
 
 def _node_library_impl(ctx):
@@ -369,9 +370,10 @@ def _construct_runfiles(ctx, srcs, all_node_modules):
 
 def _node_binary_impl(ctx):
     srcs, all_node_modules = _collect_srcs_and_deps(ctx)
+    srcElements = srcs.to_list()
 
     # Add node binary to runfiles
-    srcs += [ctx.file.node]
+    srcElements.append(ctx.file.node)
 
     node_flags = ['--preserve-symlinks']
     if ctx.attr.max_old_memory:
@@ -392,7 +394,7 @@ def _node_binary_impl(ctx):
 
     # Create the inner wrapper with the require call.
     inner_wrapper = ctx.new_file(ctx.outputs.executable, ctx.outputs.executable.basename + '-wrapper.js')
-    srcs += [inner_wrapper]
+    srcElements.append(inner_wrapper)
     ctx.file_action(
         inner_wrapper,
         '''require(process.env['BAZEL_NODE_MAIN_ID']);''',
@@ -427,8 +429,8 @@ $RUNFILES/{node} {node_flags} $RUNFILES/{inner_wrapper} {default_args}
         content = runfile_content,
         executable = True
     )
-
-    runfiles = _construct_runfiles(ctx, srcs, all_node_modules)
+    srcDepSet = depset(transitive=srcElements)
+    runfiles = _construct_runfiles(ctx, srcDepSet, all_node_modules)
     return struct(runfiles=runfiles)
 
 _node_bin_attrs = {
