@@ -289,7 +289,7 @@ def _collect_srcs_and_deps(ctx):
                 if key not in all_node_modules:
                     all_node_modules[key] = value
 
-    srcs = depset(transitive=srcElements)
+    srcs = depset(srcElements)
     return (srcs, all_node_modules)
 
 def _node_library_impl(ctx):
@@ -429,7 +429,7 @@ $RUNFILES/{node} {node_flags} $RUNFILES/{inner_wrapper} {default_args}
         content = runfile_content,
         executable = True
     )
-    srcDepSet = depset(transitive=srcElements)
+    srcDepSet = depset(srcElements)
     runfiles = _construct_runfiles(ctx, srcDepSet, all_node_modules)
     return struct(runfiles=runfiles)
 
