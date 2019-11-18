@@ -270,7 +270,7 @@ def _collect_srcs_and_deps(ctx):
 
     Returns the tuple (srcs, all_node_modules).
     '''
-    srcElements = [];
+    srcElements = []
     all_node_modules = _new_all_node_modules()
 
     srcElements.append(ctx.files.srcs)
